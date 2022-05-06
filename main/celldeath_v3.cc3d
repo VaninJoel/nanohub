@@ -1,0 +1,5 @@
+<Simulation version="4.2.5">
+   <XMLScript Type="XMLScript">Simulation/celldeath_v3.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/celldeath_v3.py</PythonScript>
+   <Resource Type="Python">Simulation/celldeath_v3Steppables.py</Resource>
+</Simulation>

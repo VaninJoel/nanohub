@@ -1,0 +1,222 @@
+<CompuCell3D Revision="20210612" Version="4.2.5">
+   
+   <Metadata>
+      
+      <!-- Basic properties simulation -->
+      <NumberOfProcessors>1</NumberOfProcessors>
+      <DebugOutputFrequency>10</DebugOutputFrequency>
+      <!-- <NonParallelModule Name="Potts"/> -->
+   </Metadata>
+   
+   <Potts>
+      
+      <!-- Basic properties of CPM (GGH) algorithm -->
+      <Dimensions x="100" y="100" z="1"/>
+      <Steps>100000</Steps>
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>1</NeighborOrder>
+   </Potts>
+   
+<Plugin Name="CellType">
+   
+   <!-- Listing all cell types in the simulation -->
+   <CellType TypeId="0" TypeName="Medium"/>
+   <CellType TypeId="1" TypeName="Healthy"/>
+   <CellType Freeze="" TypeId="2" TypeName="Pyro_DAMPS"/>
+   <CellType Freeze="" TypeId="3" TypeName="Pyro_IL1beta"/>
+   <CellType Freeze="" TypeId="4" TypeName="Dead_Pyro"/>
+</Plugin>
+   
+   <Plugin Name="Volume"/>
+   
+   <Plugin Name="Surface"/>
+   
+   <Plugin Name="CenterOfMass">
+   
+      
+      <!-- Module tracking center of mass of each cell -->
+   </Plugin>
+   <Plugin Name="Secretion">
+   
+   <!-- Specification of secretion properties of select cell types. -->
+   <!-- You may repeat Field element for each chemical field declared in the PDE solvers -->
+   <!-- Specification of secretion properties of individual cells can be done in Python -->
+       <!-- <Field Name="FIELD_FROM_PDE_SOLVER"> -->
+          <!-- <Secretion Type="CELL_TYPE_NAME">0.1</Secretion> -->
+          <!-- <SecretionOnContact SecreteOnContactWith="COMMA_SEPARATED_TYPE_NAMES" Type="CELL_TYPE_NAME">1.1</SecretionOnContact> -->
+          <!-- <ConstantConcentration Type="CELL_TYPE_NAME">0.5</ConstantConcentration> -->
+       <!-- </Field> -->
+    </Plugin>
+
+   
+   <Plugin Name="Contact">
+      <!-- Specification of adhesion energies -->
+      <Energy Type1="Medium" Type2="Medium">10.0</Energy>
+      <Energy Type1="Medium" Type2="Healthy">15.0</Energy>
+      <Energy Type1="Medium" Type2="Pyro_DAMPS">15.0</Energy>
+      <Energy Type1="Medium" Type2="Pyro_IL1beta">15.0</Energy>
+      <Energy Type1="Medium" Type2="Dead_Pyro">15.0</Energy>
+      <Energy Type1="Healthy" Type2="Healthy">10.0</Energy>
+      <Energy Type1="Healthy" Type2="Pyro_DAMPS">10.0</Energy>
+      <Energy Type1="Healthy" Type2="Pyro_IL1beta">10.0</Energy>
+      <Energy Type1="Healthy" Type2="Dead_Pyro">10.0</Energy>
+      <Energy Type1="Pyro_DAMPS" Type2="Pyro_DAMPS">10.0</Energy>
+      <Energy Type1="Pyro_DAMPS" Type2="Pyro_IL1beta">10.0</Energy>
+      <Energy Type1="Pyro_DAMPS" Type2="Dead_Pyro">10.0</Energy>
+      <Energy Type1="Pyro_IL1beta" Type2="Pyro_IL1beta">10.0</Energy>
+      <Energy Type1="Pyro_IL1beta" Type2="Dead_Pyro">10.0</Energy>
+      <Energy Type1="Dead_Pyro" Type2="Dead_Pyro">10.0</Energy>
+      <NeighborOrder>4</NeighborOrder>
+   </Plugin>
+   
+   <Steppable Type="DiffusionSolverFE">
+      
+      <!-- Specification of PDE solvers -->
+      <DiffusionField Name="DAMP">
+         <DiffusionData>
+            <FieldName>DAMP</FieldName>
+            <!-- <GlobalDiffusionConstant>0</GlobalDiffusionConstant> -->
+            <!-- <GlobalDecayConstant>0</GlobalDecayConstant> -->
+            <!-- Additional options are: -->
+            <!-- <InitialConcentrationExpression>x*y</InitialConcentrationExpression> -->
+            <InitialConcentrationExpression>max(0,15 - ((x-85)^2 + (y-50)^2))</InitialConcentrationExpression>
+            <!-- <InitialConcentrationExpression>max(0,10 - ((x-30)^2 + (y-90)^2))</InitialConcentrationExpression> -->
+            <!-- <ConcentrationFileName>INITIAL CONCENTRATION FIELD - typically a file with path Simulation/NAME_OF_THE_FILE.txt</ConcentrationFileName> -->
+            <DiffusionCoefficient CellType="Medium">0.09</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Healthy">0.005</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Pyro_DAMPS">0.008</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Pyro_IL1beta">0.008</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Dead_Pyro">0.1</DiffusionCoefficient>
+            <!-- <DecayCoefficient CellType="Healthy">0</DecayCoefficient> -->
+            <!-- <DecayCoefficient CellType="Pyro_DAMPS">0</DecayCoefficient> -->
+            <!-- <DecayCoefficient CellType="Pyro_IL1beta">0</DecayCoefficient> -->
+            <!-- <DecayCoefficient CellType="Dead_Pyro">0</DecayCoefficient> -->
+         </DiffusionData>
+         <SecretionData>
+            <!-- When secretion is defined inside DissufionSolverFE all secretion constants are scaled automaticaly to account for the extra calls to the diffusion step when handling large diffusion constants -->
+            
+            <!-- Uniform secretion Definition -->
+            <!-- <Secretion Type="Healthy">0</Secretion> -->
+            <!-- <Secretion Type="Pyro_DAMPS">0</Secretion> -->
+            <!-- <Secretion Type="Pyro_IL1beta">0</Secretion> -->
+            <!-- <Secretion Type="Dead_Pyro">0</Secretion> -->
+            <!-- <SecretionOnContact SecreteOnContactWith="Healthy,Pyro_DAMPS,Pyro_IL1beta,Dead_Pyro" Type="Dead_Pyro">0.2</SecretionOnContact> -->
+            <!-- <ConstantConcentration Type="Dead_Pyro">0.1</ConstantConcentration> -->
+         </SecretionData>
+         <BoundaryConditions>
+            <Plane Axis="X">
+               <!-- <ConstantValue PlanePosition="Min" Value="10.0"/> -->
+               <!-- <ConstantValue PlanePosition="Max" Value="5.0"/> -->
+               <!-- Other options are (examples): -->
+               <Periodic/>
+               <!-- <ConstantDerivative PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+            <Plane Axis="Y">
+               <!-- <ConstantDerivative PlanePosition="Min" Value="10.0"/> -->
+               <!-- <ConstantDerivative PlanePosition="Max" Value="5.0"/> -->
+               <!-- Other options are (examples): -->
+               <Periodic/>
+               <!-- <ConstantValue PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+         </BoundaryConditions>
+      </DiffusionField>
+      
+      <DiffusionField Name="IL1B">
+         <DiffusionData>
+            <FieldName>IL1B</FieldName>
+            <!-- <GlobalDiffusionConstant>0</GlobalDiffusionConstant> -->
+            <!-- <GlobalDecayConstant>0</GlobalDecayConstant> -->
+            <!-- Additional options are: -->
+            <!-- <InitialConcentrationExpression>x*y</InitialConcentrationExpression> -->
+            <!-- <ConcentrationFileName>INITIAL CONCENTRATION FIELD - typically a file with path Simulation/NAME_OF_THE_FILE.txt</ConcentrationFileName> -->
+            <DiffusionCoefficient CellType="Medium">0.09</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Healthy">0.005</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Pyro_DAMPS">0.008</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Pyro_IL1beta">0.008</DiffusionCoefficient>
+            <!-- <DiffusionCoefficient CellType="Dead_Pyro">0</DiffusionCoefficient> -->
+            <DecayCoefficient id="il1b_decay" CellType="Medium">0</DecayCoefficient>
+            <!-- <DecayCoefficient CellType="Healthy">0</DecayCoefficient> -->
+            <!-- <DecayCoefficient CellType="Pyro_DAMPS">0</DecayCoefficient> -->
+            <!-- <DecayCoefficient CellType="Pyro_IL1beta">0</DecayCoefficient> -->
+            <!-- <DecayCoefficient CellType="Dead_Pyro">1</DecayCoefficient> -->
+            
+         </DiffusionData>
+         <SecretionData>
+            <!-- When secretion is defined inside DissufionSolverFE all secretion constants are scaled automaticaly to account for the extra calls to the diffusion step when handling large diffusion constants -->
+            
+            <!-- Uniform secretion Definition -->
+            <!-- <Secretion Type="Healthy">0</Secretion> -->
+            <!-- <Secretion Type="Pyro_DAMPS">0.05</Secretion> -->
+            <!-- <Secretion Type="Pyro_IL1beta">0.05</Secretion> -->
+            <!-- <Secretion Type="Dead_Pyro">0</Secretion> -->
+            <!-- <SecretionOnContact SecreteOnContactWith="Healthy,Pyro_DAMPS,Pyro_IL1beta,Dead_Pyro" Type="Dead_Pyro">0.2</SecretionOnContact> -->
+            <!-- <ConstantConcentration Type="Dead_Pyro">0.1</ConstantConcentration> -->
+         </SecretionData>
+         <BoundaryConditions>
+            <Plane Axis="X">
+               <!-- <ConstantValue PlanePosition="Min" Value="10.0"/> -->
+               <!-- <ConstantValue PlanePosition="Max" Value="5.0"/> -->
+               <!-- Other options are (examples): -->
+               <Periodic/>
+               <!-- <ConstantDerivative PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+            <Plane Axis="Y">
+               <!-- <ConstantDerivative PlanePosition="Min" Value="10.0"/> -->
+               <!-- <ConstantDerivative PlanePosition="Max" Value="5.0"/> -->
+               <!-- Other options are (examples): -->
+               <Periodic/>
+               <!-- <ConstantValue PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+         </BoundaryConditions>
+      </DiffusionField>    
+ 
+      
+   </Steppable>
+   
+   <Steppable Type="UniformInitializer">
+      
+      <!-- Initial layout of cells in the form of rectangular slab -->
+      <Region>
+         <BoxMin x="10" y="0" z="0"/>
+         <BoxMax x="20" y="100" z="1"/>
+         <Gap>0</Gap>
+         <Width>5</Width>
+         <Types>Healthy</Types>
+      </Region>
+      <!-- <Region> -->
+         <!-- <BoxMin x="15" y="45" z="0"/> -->
+         <!-- <BoxMax x="20" y="50" z="1"/> -->
+         <!-- <Gap>0</Gap> -->
+         <!-- <Width>5</Width> -->
+         <!-- <Types>Pyro_DAMPS</Types> -->
+      <!-- </Region> -->
+      <Region>
+         <BoxMin x="30" y="0" z="0"/>
+         <BoxMax x="40" y="100" z="1"/>
+         <Gap>0</Gap>
+         <Width>5</Width>
+         <Types>Healthy</Types>
+      </Region>
+      <Region>
+         <BoxMin x="50" y="0" z="0"/>
+         <BoxMax x="60" y="100" z="1"/>
+         <Gap>0</Gap>
+         <Width>5</Width>
+         <Types>Healthy</Types>
+      </Region>
+      <Region>
+         <BoxMin x="70" y="0" z="0"/>
+         <BoxMax x="80" y="100" z="1"/>
+         <Gap>0</Gap>
+         <Width>5</Width>
+         <Types>Healthy</Types>
+      </Region>
+      <Region>
+         <BoxMin x="90" y="0" z="0"/>
+         <BoxMax x="100" y="100" z="1"/>
+         <Gap>0</Gap>
+         <Width>5</Width>
+         <Types>Healthy</Types>
+      </Region>
+   </Steppable>
+</CompuCell3D>
